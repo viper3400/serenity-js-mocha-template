@@ -2,12 +2,17 @@
 import 'mocha';
 
 import { Ensure, equals } from '@serenity-js/assertions';
-import { actorCalled, notes } from '@serenity-js/core';
+import { actorCalled, engage, notes } from '@serenity-js/core';
 import { GetRequest, LastResponse, Send } from '@serenity-js/rest';
 import { escape } from 'querystring';
-import { CalculationResult } from '../../src/index';
+import { Actors, CalculationResult } from '../../src/index';
 
 describe('Math.js API', () => {
+
+    before( () => {
+        const actors = new Actors(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/')
+        engage(actors);
+    })
 
     describe('GET /v4/?expr', () => {
 
