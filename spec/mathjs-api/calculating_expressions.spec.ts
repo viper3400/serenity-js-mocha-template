@@ -2,9 +2,10 @@
 import 'mocha';
 
 import { Ensure, equals } from '@serenity-js/assertions';
-import { actorCalled } from '@serenity-js/core';
-import { GetRequest, LastResponse, PostRequest, Send } from '@serenity-js/rest';
+import { actorCalled, notes } from '@serenity-js/core';
+import { GetRequest, LastResponse, Send } from '@serenity-js/rest';
 import { escape } from 'querystring';
+import { CalculationResult } from '../../src/index';
 
 describe('Math.js API', () => {
 
@@ -18,32 +19,23 @@ describe('Math.js API', () => {
         it('supports calculating a single expression', () =>
             actorCalled('Apisitt').attemptsTo(
                 Send.a(RequestToCalculateExpression('2 + 2')),
+                Ensure.that(notes().get('additionResult'), equals(0)),
+                notes<CalculationResult>().set('additionResult', LastResponse.body<number>()),
+                notes().set('addition result', LastResponse.body<number>()),
                 Ensure.that(LastResponse.body<number>(), equals(4)),
+                Ensure.that(notes().get('addition result'), equals(4)),
+                Ensure.that(notes<CalculationResult>().get('additionResult'), equals(4))
             ));
-    });
 
-    describe('POST /v4', () => {
-
-        const RequestToCalculateExpressions = (expressions: string[], precision?: number) =>
-            PostRequest.to(`/v4`).with({ expr: expressions, precision })
-                .describedAs(`a request to calculate ${ expressions.join(', ') }`)
-
-        interface CalculatedExpressions {
-            result: string[] | string | null;
-            error: string | null;
-        }
-
-        it('supports calculating multiple expressions in one request', () =>
+        it('remembers Apisitt`s untyped notes', () =>
             actorCalled('Apisitt').attemptsTo(
-
-                Send.a(RequestToCalculateExpressions([ '2 + 2', '5 - 3' ])),
-
-                // note that LastResponse.body is generic;
-                // you can configure it with an interface specifying the shape of the expected response body
-                Ensure.that(LastResponse.body<CalculatedExpressions>(), equals({
-                    result: [ '4', '2' ],
-                    error: null,            // eslint-disable-line unicorn/no-null
-                })),
+            Ensure.that(notes().get('addition result'), equals(4))
             ));
+
+        it('remembers Apisitt`s typed notes', () =>
+            actorCalled('Apisitt').attemptsTo(
+                Ensure.that(notes<CalculationResult>().get('additionResult'), equals(4))
+          ));
     });
+
 });
