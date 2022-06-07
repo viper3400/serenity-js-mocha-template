@@ -5,13 +5,14 @@ import { Ensure, equals } from '@serenity-js/assertions';
 import { actorCalled, engage, Log, notes } from '@serenity-js/core';
 import { GetRequest, LastResponse, Send } from '@serenity-js/rest';
 import { escape } from 'querystring';
-import { Actors, CalculationResult } from '../../src/index';
+import { Actors, ActorsWithOtherAbilities, CalculationResult, OtherCalculationResult } from '../../src/index';
 
 describe('Math.js API', () => {
 
     before( () => {
         engage(new Actors(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/')),
         actorCalled('Apisitt').attemptsTo(Log.the(notes().toJSON())),
+        engage(new ActorsWithOtherAbilities(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/')),
         actorCalled('Jan').attemptsTo(Log.the(notes().toJSON()))
     })
 
@@ -37,7 +38,7 @@ describe('Math.js API', () => {
             actorCalled('Jan').attemptsTo(
                 Send.a(RequestToCalculateExpression('2 + 3')),
                 Ensure.that(notes().get('additionResult'), equals(0)),
-                notes<CalculationResult>().set('additionResult', LastResponse.body<number>()),
+                notes<OtherCalculationResult>().set('otherAdditionResult', LastResponse.body<number>()),
                 notes().set('addition result', LastResponse.body<number>()),
                 Ensure.that(LastResponse.body<number>(), equals(5)),
                 Ensure.that(notes().get('addition result'), equals(5)),
@@ -61,7 +62,7 @@ describe('Math.js API', () => {
 
         it('remembers Jans`s typed notes', () =>
           actorCalled('Jan').attemptsTo(
-              Ensure.that(notes<CalculationResult>().get('additionResult'), equals(5))
+              Ensure.that(notes<OtherCalculationResult>().get('otherAdditionResult'), equals(5))
         ));
     });
 
