@@ -13,7 +13,7 @@ import { Actors } from '../../src';
  * @see https://serenity-js.org/handbook/reporting/index.html
  */
 configure({
-    //actors: new Actors(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/'),
+    actors: new Actors(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/'),
     crew: [
         ConsoleReporter.withDefaultColourSupport(),
         new SerenityBDDReporter(),

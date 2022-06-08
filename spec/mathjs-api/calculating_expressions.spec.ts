@@ -5,15 +5,13 @@ import { Ensure, equals } from '@serenity-js/assertions';
 import { actorCalled, engage, Log, notes } from '@serenity-js/core';
 import { GetRequest, LastResponse, Send } from '@serenity-js/rest';
 import { escape } from 'querystring';
-import { Actors, ActorsWithOtherAbilities, CalculationResult, OtherCalculationResult } from '../../src/index';
+import { NotepadTwo, NotepadOne, actorNames } from '../../src/index';
 
 describe('Math.js API', () => {
 
     before( () => {
-        engage(new Actors(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/')),
-        actorCalled('Apisitt').attemptsTo(Log.the(notes().toJSON())),
-        engage(new ActorsWithOtherAbilities(process.env.BASE_API_URL || 'http://api.mathjs.org/v4/')),
-        actorCalled('Jan').attemptsTo(Log.the(notes().toJSON()))
+        actorCalled(actorNames.Apisitt).attemptsTo(Log.the(notes().toJSON())),
+        actorCalled(actorNames.Jan).attemptsTo(Log.the(notes().toJSON()))
     })
 
     describe('GET /v4/?expr', () => {
@@ -24,51 +22,53 @@ describe('Math.js API', () => {
                 .describedAs(`a request to calculate ${ expression }`)
 
         it('supports Apisitt with calculating a single expression', () =>
-            actorCalled('Apisitt').attemptsTo(
+            actorCalled(actorNames.Apisitt).attemptsTo(
                 Send.a(RequestToCalculateExpression('2 + 2')),
                 Ensure.that(notes().get('additionResult'), equals(0)),
-                notes<CalculationResult>().set('additionResult', LastResponse.body<number>()),
+                notes<NotepadTwo>().set('additionResult', LastResponse.body<number>()),
                 notes().set('addition result', LastResponse.body<number>()),
                 Ensure.that(LastResponse.body<number>(), equals(4)),
                 Ensure.that(notes().get('addition result'), equals(4)),
-                Ensure.that(notes<CalculationResult>().get('additionResult'), equals(4))
+                Ensure.that(notes<NotepadTwo>().get('additionResult'), equals(4))
             ));
 
-         it('supports Apisitt with calculating a single expression', () =>
-            actorCalled('Jan').attemptsTo(
+         it('supports Jan with calculating a single expression', () =>
+            actorCalled(actorNames.Jan).attemptsTo(
                 Send.a(RequestToCalculateExpression('2 + 3')),
-                Ensure.that(notes().get('additionResult'), equals(0)),
-                notes<OtherCalculationResult>().set('otherAdditionResult', LastResponse.body<number>()),
+                Ensure.that(notes().get('otherAdditionResult'), equals(0)),
+                notes<NotepadOne>().set('otherAdditionResult', LastResponse.body<number>()),
                 notes().set('addition result', LastResponse.body<number>()),
                 Ensure.that(LastResponse.body<number>(), equals(5)),
                 Ensure.that(notes().get('addition result'), equals(5)),
-                Ensure.that(notes<CalculationResult>().get('additionResult'), equals(5))
+                Ensure.that(notes<NotepadOne>().get('otherAdditionResult'), equals(5))
             ));
 
         it('remembers Apisitt`s untyped notes', () =>
-            actorCalled('Apisitt').attemptsTo(
+            actorCalled(actorNames.Apisitt).attemptsTo(
             Ensure.that(notes().get('addition result'), equals(4))
             ));
 
         it('remembers Apisitt`s typed notes', () =>
-            actorCalled('Apisitt').attemptsTo(
-                Ensure.that(notes<CalculationResult>().get('additionResult'), equals(4))
+            actorCalled(actorNames.Apisitt).attemptsTo(
+                Ensure.that(notes<NotepadTwo>().get('additionResult'), equals(4)),
+                Ensure.that(notes<NotepadTwo>().get('translations').Switzerlerland, equals('Schweiz'))
           ));
 
         it('remembers Jan`s untyped notes', () =>
-          actorCalled('Jan').attemptsTo(
+          actorCalled(actorNames.Jan).attemptsTo(
           Ensure.that(notes().get('addition result'), equals(5))
           ));
 
         it('remembers Jans`s typed notes', () =>
-          actorCalled('Jan').attemptsTo(
-              Ensure.that(notes<OtherCalculationResult>().get('otherAdditionResult'), equals(5))
+          actorCalled(actorNames.Jan).attemptsTo(
+              Ensure.that(notes<NotepadOne>().get('otherAdditionResult'), equals(5)),
+              Ensure.that(notes<NotepadOne>().get('translations').Switzerlerland, equals('Suisse'))
         ));
     });
 
     after( () => {
-        actorCalled('Apisitt').attemptsTo(Log.the(notes().toJSON())),
-        actorCalled('Jan').attemptsTo(Log.the(notes().toJSON()))
+        actorCalled(actorNames.Apisitt).attemptsTo(Log.the(notes().toJSON())),
+        actorCalled(actorNames.Jan).attemptsTo(Log.the(notes().toJSON()))
     })
 
 });
